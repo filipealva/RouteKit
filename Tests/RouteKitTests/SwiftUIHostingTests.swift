@@ -15,4 +15,13 @@ struct SwiftUIHostingTests {
     #expect(controller is UIHostingController<Text>)
     #expect(controller.sizingOptions.contains(.intrinsicContentSize))
   }
+
+  @Test("hostingController applies configure closure")
+  func hostingControllerConfigure() {
+    let controller = hostingController(for: Text("Test")) { hc in
+      hc.modalPresentationStyle = .formSheet
+    }
+
+    #expect(controller.modalPresentationStyle == .formSheet)
+  }
 }

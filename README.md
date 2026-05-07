@@ -251,7 +251,8 @@ final class MainTabCoordinator: TabBarCoordinator<MainTabRoute> {
 ### iOS 18 UITab API
 
 ```swift
-configureTabs { tabBar in
+configureTabs { [weak self] tabBar in
+  guard let self else { return }
   let homeTab = UITab(title: "Home", image: UIImage(systemName: "house"),
                       identifier: "home") { _ in
     self.homeCoordinator.rootViewController
@@ -324,8 +325,9 @@ override func prepareTransition(for route: HomeRoute) -> Transition<HomeRoute> {
 
   case .settings:
     let view = SettingsView()
-    let hc = hostingController(for: view)
-    hc.modalPresentationStyle = .formSheet
+    let hc = hostingController(for: view) { controller in
+      controller.modalPresentationStyle = .formSheet
+    }
     return .present(hc)
   }
 }
@@ -377,7 +379,8 @@ func handleDeepLink(_ url: URL) {
 RouteKit's `Router` is designed for MVVM. ViewModels hold a router to trigger navigation without knowing about UIKit:
 
 ```swift
-// UIKit ViewModel (Combine)
+// UIKit ViewModel (Combine) — must be @MainActor for Router access under Swift 6
+@MainActor
 final class ItemListViewModel {
   @Published private(set) var items: [Item] = []
   private let router: Router<HomeRoute>
