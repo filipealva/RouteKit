@@ -73,10 +73,11 @@ open class NavigationCoordinator<RouteType: Route>: Coordinator<RouteType> {
 
 // MARK: - Navigation Delegate
 
+@MainActor
 private final class NavigationDelegate: NSObject, UINavigationControllerDelegate {
 
-  nonisolated(unsafe) var onDidShow: (() -> Void)?
-  nonisolated(unsafe) var onAnimationController: (
+  var onDidShow: (() -> Void)?
+  var onAnimationController: (
     (UINavigationController.Operation) -> (any UIViewControllerAnimatedTransitioning)?
   )?
 

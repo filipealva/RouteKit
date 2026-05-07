@@ -1,10 +1,10 @@
 import UIKit
 
 @MainActor
-public final class TransitionAnimation: @unchecked Sendable {
+public final class TransitionAnimation {
 
-  nonisolated(unsafe) public let presentationAnimator: any UIViewControllerAnimatedTransitioning
-  nonisolated(unsafe) public let dismissalAnimator: (any UIViewControllerAnimatedTransitioning)?
+  public let presentationAnimator: any UIViewControllerAnimatedTransitioning
+  public let dismissalAnimator: (any UIViewControllerAnimatedTransitioning)?
 
   public init(
     presentation: any UIViewControllerAnimatedTransitioning,
