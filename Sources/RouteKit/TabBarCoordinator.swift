@@ -23,13 +23,17 @@ open class TabBarCoordinator<RouteType: Route>: Coordinator<RouteType> {
     configuration(tabBarController)
   }
 
-  public func selectTab(at index: Int) {
+  // MARK: - Tab Selection
+
+  public func selectTab(at index: Int, completion: (() -> Void)? = nil) {
+    CATransaction.begin()
+    CATransaction.setCompletionBlock(completion)
     tabBarController.selectedIndex = index
-    tabBarController.view.layoutIfNeeded()
+    CATransaction.commit()
   }
 
-  public func selectTab(for coordinator: any AnyCoordinator) {
+  public func selectTab(for coordinator: any AnyCoordinator, completion: (() -> Void)? = nil) {
     guard let index = children.firstIndex(where: { $0 === coordinator }) else { return }
-    selectTab(at: index)
+    selectTab(at: index, completion: completion)
   }
 }

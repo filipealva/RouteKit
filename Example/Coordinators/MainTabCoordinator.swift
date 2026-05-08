@@ -60,8 +60,9 @@ final class MainTabCoordinator: TabBarCoordinator<MainTabRoute> {
       return .none
 
     case .deepLinkExploreDetail(let title):
-      selectTab(at: 1)
-      exploreCoordinator?.pushDetail(title: title)
+      selectTab(at: 1) { [weak self] in
+        self?.exploreCoordinator?.pushDetail(title: title)
+      }
       return .none
     }
   }

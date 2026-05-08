@@ -363,7 +363,7 @@ return .push(vc, animation: animation)
 
 ### Deep Linking
 
-Chain routes through the coordinator tree:
+Chain routes through the coordinator tree. Use `selectTab(at:completion:)` to ensure the tab's view hierarchy is ready before pushing:
 
 ```swift
 func handleDeepLink(_ url: URL) {
@@ -371,11 +371,14 @@ func handleDeepLink(_ url: URL) {
 
   switch route {
   case .profile(let userId):
-    mainTabCoordinator?.selectTab(at: 2)
-    profileCoordinator?.trigger(.userDetail(userId))
+    mainTabCoordinator?.selectTab(at: 2) {
+      profileCoordinator?.trigger(.userDetail(userId))
+    }
   }
 }
 ```
+
+The completion fires after `CATransaction` completes, guaranteeing the selected tab's navigation controller is in the window hierarchy.
 
 ### MVVM Integration
 
