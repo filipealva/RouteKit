@@ -25,7 +25,7 @@ open class TabBarCoordinator<RouteType: Route>: Coordinator<RouteType> {
 
   public func selectTab(at index: Int) {
     tabBarController.selectedIndex = index
-    tabBarController.selectedViewController?.view.layoutIfNeeded()
+    tabBarController.view.layoutIfNeeded()
   }
 
   public func selectTab(for coordinator: any AnyCoordinator) {
