@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Assets/header.png" alt="RouteKit" />
+</p>
+
 # RouteKit
 
 A lightweight, Swift 6-ready UIKit coordinator package. Route-based navigation with custom transitions in ~400 lines of code.
