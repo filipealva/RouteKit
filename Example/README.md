@@ -19,14 +19,27 @@ A complete iOS demo app that showcases every feature of RouteKit.
 
 ## How to Run
 
+### Using XcodeGen (recommended)
+
+1. Install XcodeGen if you don't have it: `brew install xcodegen`
+2. From this `Example/` directory, run: `xcodegen generate`
+3. Open `RouteKitExample.xcodeproj` in Xcode
+4. Select an iOS 18+ simulator and build & run
+
+The `project.yml` is the source of truth — the `.xcodeproj` is gitignored and regenerated.
+
+### Manual setup
+
 1. Open Xcode and create a new **iOS App** project (Interface: Storyboard, Language: Swift).
 2. Delete the auto-generated `ViewController.swift`, `Main.storyboard`, and any SceneDelegate/AppDelegate files.
-3. In the project's **Info.plist**, remove the "Main storyboard file base name" key and the `UISceneConfiguration` storyboard name if present.
+3. In the project's **Info.plist**, remove the "Main storyboard file base name" key.
 4. Copy all `.swift` files from this `Example/` directory (including subdirectories) into your Xcode project.
 5. In Xcode, go to the project settings > **Package Dependencies** > click **+** > **Add Local...** > select the `RouteKit/` root directory (the parent of this `Example/` folder).
 6. In your app target's **Frameworks, Libraries, and Embedded Content**, add `RouteKit`.
 7. Set the deployment target to **iOS 18.0** or later.
 8. Build and run.
+
+> **Note:** Do not import both `SwiftUI` and `RouteKit` in the same file — `SwiftUI.Transition` conflicts with `RouteKit.Transition`. Keep SwiftUI views in separate files.
 
 ## App Flow
 

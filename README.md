@@ -314,9 +314,12 @@ final class HomeCoordinator: NavigationCoordinator<HomeRoute> {
 
 ### SwiftUI Views in Coordinators
 
-```swift
-import SwiftUI
+Define your SwiftUI views in separate files (importing `SwiftUI` only), then use `hostingController(for:)` in your coordinator (importing `RouteKit` only):
 
+> **Note:** Avoid importing both `SwiftUI` and `RouteKit` in the same file — `SwiftUI.Transition` conflicts with `RouteKit.Transition`. Keep SwiftUI views in their own files.
+
+```swift
+// In your coordinator file (import RouteKit, NOT SwiftUI)
 override func prepareTransition(for route: HomeRoute) -> Transition<HomeRoute> {
   switch route {
   case .profile(let userId):

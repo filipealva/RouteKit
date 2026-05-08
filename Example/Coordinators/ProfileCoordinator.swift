@@ -1,7 +1,6 @@
 // Demonstrates: NavigationCoordinator, hostingController for SwiftUI views
 
 import UIKit
-import SwiftUI
 import RouteKit
 
 enum ProfileRoute: Route {
