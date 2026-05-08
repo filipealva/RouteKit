@@ -60,8 +60,8 @@ final class MainTabCoordinator: TabBarCoordinator<MainTabRoute> {
       return .none
 
     case .deepLinkExploreDetail(let title):
-      // Deep link: switch to Explore tab, then push a detail screen
       selectTab(at: 1)
+      tabBarController.selectedViewController?.view.layoutIfNeeded()
       exploreCoordinator?.pushDetail(title: title)
       return .none
     }
