@@ -25,10 +25,11 @@ open class TabBarCoordinator<RouteType: Route>: Coordinator<RouteType> {
 
   public func selectTab(at index: Int) {
     tabBarController.selectedIndex = index
+    tabBarController.selectedViewController?.view.layoutIfNeeded()
   }
 
   public func selectTab(for coordinator: any AnyCoordinator) {
     guard let index = children.firstIndex(where: { $0 === coordinator }) else { return }
-    tabBarController.selectedIndex = index
+    selectTab(at: index)
   }
 }

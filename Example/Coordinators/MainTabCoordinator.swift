@@ -61,7 +61,6 @@ final class MainTabCoordinator: TabBarCoordinator<MainTabRoute> {
 
     case .deepLinkExploreDetail(let title):
       selectTab(at: 1)
-      tabBarController.selectedViewController?.view.layoutIfNeeded()
       exploreCoordinator?.pushDetail(title: title)
       return .none
     }
