@@ -442,6 +442,21 @@ override func prepareTransition(for route: HomeRoute) -> Transition<HomeRoute> {
 | `router.trigger(.route)` | `router.trigger(.route)` | Same API |
 | `Presentable` protocol | Not needed | Coordinators own VCs directly |
 
+## Example App
+
+The [`Example/`](Example/) directory contains a complete iOS app demonstrating every RouteKit feature:
+
+- WindowCoordinator with login/main root switching
+- TabBarCoordinator with 3 tabs
+- NavigationCoordinator with push/pop/modal
+- Router in ViewModels (MVVM pattern)
+- SwiftUI views via `hostingController(for:)`
+- Custom slide-from-bottom transition animation
+- Deep linking across coordinators
+- Back-button and swipe-to-dismiss detection
+
+See [`Example/README.md`](Example/README.md) for setup instructions.
+
 ## Requirements
 
 - iOS 18.0+
