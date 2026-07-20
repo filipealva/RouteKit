@@ -46,56 +46,61 @@ struct NavigationCoordinatorTests {
 
   // MARK: - Pop Detection
 
-  @Test("didShow with the tracked VC still on the stack (cancelled pop) fires no pop")
-  func testDidShowWithViewControllerStillPresentDoesNotFirePop() async {
+  @Test("didShow for the shown VC while it is transiently absent (cancelled pop) fires no pop")
+  func testDidShowWithViewControllerStillPresentDoesNotFirePop() {
     let root = UIViewController()
     let nav = UINavigationController(rootViewController: root)
     let coordinator = TestNavigationCoordinator(navigationController: nav)
     let pushed = UIViewController()
     coordinator.performTransition(.push(pushed))
 
-    // Cancelled interactive pop: didShow fires while the stack is still [root, pushed].
+    // Mid-cancellation transient: the live stack momentarily reads as popped while the VC
+    // being restored is exactly the one didShow reports.
+    nav.setViewControllers([root], animated: false)
     nav.delegate?.navigationController?(nav, didShow: pushed, animated: false)
-    await Task.yield()
-
     #expect(coordinator.poppedViewControllers.isEmpty)
-    #expect(nav.viewControllers == [root, pushed])
+
+    // `pushed` must still be tracked: a subsequent real pop (shown VC now `root`) fires once.
+    nav.delegate?.navigationController?(nav, didShow: root, animated: false)
+    #expect(coordinator.poppedViewControllers.count == 1)
+    #expect(coordinator.poppedViewControllers.first === pushed)
   }
 
   @Test("didShow after the VC leaves the stack (committed pop) fires pop exactly once")
-  func testDidShowAfterRemovalFiresPopOnce() async {
+  func testDidShowAfterRemovalFiresPopOnce() {
     let root = UIViewController()
     let nav = UINavigationController(rootViewController: root)
     let coordinator = TestNavigationCoordinator(navigationController: nav)
     let pushed = UIViewController()
     coordinator.performTransition(.push(pushed))
 
-    // Committed pop: the stack has settled without the pushed VC by the time didShow fires.
+    // Committed pop: `pushed` is gone and the shown VC is the one beneath it.
     nav.setViewControllers([root], animated: false)
     nav.delegate?.navigationController?(nav, didShow: root, animated: false)
-    await Task.yield()
 
     #expect(coordinator.poppedViewControllers.count == 1)
     #expect(coordinator.poppedViewControllers.first === pushed)
   }
 
-  @Test("a cancelled didShow then a committed didShow fires pop exactly once")
-  func testCancelThenCommitFiresPopExactlyOnce() async {
+  @Test("a cancelled transient then a committed pop fires pop exactly once")
+  func testCancelThenCommitFiresPopExactlyOnce() {
     let root = UIViewController()
     let nav = UINavigationController(rootViewController: root)
     let coordinator = TestNavigationCoordinator(navigationController: nav)
     let pushed = UIViewController()
     coordinator.performTransition(.push(pushed))
 
-    // Cancel: stack still [root, pushed] — tracking must survive intact.
+    // Cancel: the transient popped stack with `pushed` as the shown (restoring) VC.
+    nav.setViewControllers([root], animated: false)
     nav.delegate?.navigationController?(nav, didShow: pushed, animated: false)
-    await Task.yield()
     #expect(coordinator.poppedViewControllers.isEmpty)
 
-    // Commit: stack settles to [root] — the surviving tracking fires the pop.
+    // UIKit finishes the cancel, restoring the stack.
+    nav.setViewControllers([root, pushed], animated: false)
+
+    // Commit: a real pop now settles the stack without `pushed`.
     nav.setViewControllers([root], animated: false)
     nav.delegate?.navigationController?(nav, didShow: root, animated: false)
-    await Task.yield()
 
     #expect(coordinator.poppedViewControllers.count == 1)
     #expect(coordinator.poppedViewControllers.first === pushed)

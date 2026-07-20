@@ -14,7 +14,7 @@ open class NavigationCoordinator<RouteType: Route>: Coordinator<RouteType> {
   public init(navigationController: UINavigationController = UINavigationController()) {
     super.init(rootViewController: navigationController)
     let delegate = NavigationDelegate()
-    delegate.onDidShow = { [weak self] in self?.handleDidShow() }
+    delegate.onDidShow = { [weak self] shown in self?.handleDidShow(shown: shown) }
     delegate.onAnimationController = { [weak self] op in self?.animationController(for: op) }
     self.navigationDelegate = delegate
     navigationController.delegate = delegate
@@ -49,20 +49,20 @@ open class NavigationCoordinator<RouteType: Route>: Coordinator<RouteType> {
   /// Reconciles `trackedViewControllers` against the live nav stack and emits
   /// `didPopViewController` for anything that disappeared.
   ///
-  /// The diff is deferred one main-actor turn so it reads the *settled* stack. On a
-  /// cancelled interactive pop, UIKit fires `didShow` while `viewControllers` transiently
-  /// reflects the popped stack (the cancelled VC not yet restored); diffing it synchronously
-  /// would report a spurious pop and corrupt tracking. By the deferred turn the stack is
-  /// restored, so no false pop fires. A committed pop reports one turn later — imperceptible.
-  private func handleDidShow() {
-    Task { @MainActor [weak self] in
-      guard let self else { return }
-      let currentVCs = Set(navigationController.viewControllers.map { ObjectIdentifier($0) })
-      let popped = trackedViewControllers.filter { !currentVCs.contains(ObjectIdentifier($0)) }
-      trackedViewControllers.removeAll { !currentVCs.contains(ObjectIdentifier($0)) }
-      for vc in popped {
-        didPopViewController(vc)
-      }
+  /// `shown` is the view controller `didShow` just surfaced. During a *cancelled* interactive
+  /// pop, UIKit fires `didShow` for the VC being restored while `viewControllers` transiently
+  /// still reflects the popped stack — so a tracked VC can momentarily read as absent even
+  /// though it was not popped. That transient is the only situation in which the absent VC is
+  /// also the shown VC: a genuinely popped VC is never the one left on screen. Excluding
+  /// `shown` from the diff therefore suppresses the spurious pop with a synchronous,
+  /// timing-independent invariant (no runloop deferral, no race against UIKit's restore) and
+  /// keeps the VC tracked so a later real pop still fires exactly once.
+  private func handleDidShow(shown: UIViewController) {
+    let currentVCs = Set(navigationController.viewControllers.map { ObjectIdentifier($0) })
+    let popped = trackedViewControllers.filter { $0 !== shown && !currentVCs.contains(ObjectIdentifier($0)) }
+    trackedViewControllers.removeAll { $0 !== shown && !currentVCs.contains(ObjectIdentifier($0)) }
+    for vc in popped {
+      didPopViewController(vc)
     }
   }
 
@@ -87,7 +87,7 @@ open class NavigationCoordinator<RouteType: Route>: Coordinator<RouteType> {
 @MainActor
 private final class NavigationDelegate: NSObject, UINavigationControllerDelegate {
 
-  var onDidShow: (() -> Void)?
+  var onDidShow: ((UIViewController) -> Void)?
   var onAnimationController: (
     (UINavigationController.Operation) -> (any UIViewControllerAnimatedTransitioning)?
   )?
@@ -98,7 +98,7 @@ private final class NavigationDelegate: NSObject, UINavigationControllerDelegate
     animated: Bool
   ) {
     MainActor.assumeIsolated {
-      onDidShow?()
+      onDidShow?(viewController)
     }
   }
 
