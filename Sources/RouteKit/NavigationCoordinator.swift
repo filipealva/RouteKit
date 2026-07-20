@@ -46,12 +46,23 @@ open class NavigationCoordinator<RouteType: Route>: Coordinator<RouteType> {
 
   open func didPopViewController(_ viewController: UIViewController) {}
 
+  /// Reconciles `trackedViewControllers` against the live nav stack and emits
+  /// `didPopViewController` for anything that disappeared.
+  ///
+  /// The diff is deferred one main-actor turn so it reads the *settled* stack. On a
+  /// cancelled interactive pop, UIKit fires `didShow` while `viewControllers` transiently
+  /// reflects the popped stack (the cancelled VC not yet restored); diffing it synchronously
+  /// would report a spurious pop and corrupt tracking. By the deferred turn the stack is
+  /// restored, so no false pop fires. A committed pop reports one turn later — imperceptible.
   private func handleDidShow() {
-    let currentVCs = Set(navigationController.viewControllers.map { ObjectIdentifier($0) })
-    let popped = trackedViewControllers.filter { !currentVCs.contains(ObjectIdentifier($0)) }
-    trackedViewControllers.removeAll { !currentVCs.contains(ObjectIdentifier($0)) }
-    for vc in popped {
-      didPopViewController(vc)
+    Task { @MainActor [weak self] in
+      guard let self else { return }
+      let currentVCs = Set(navigationController.viewControllers.map { ObjectIdentifier($0) })
+      let popped = trackedViewControllers.filter { !currentVCs.contains(ObjectIdentifier($0)) }
+      trackedViewControllers.removeAll { !currentVCs.contains(ObjectIdentifier($0)) }
+      for vc in popped {
+        didPopViewController(vc)
+      }
     }
   }
 
